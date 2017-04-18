@@ -15,29 +15,25 @@ import java.awt.geom.* ;
 public class Divisive
 {
 	static long startTime = System.nanoTime();
-	//ArrayList<InterPoints> arrIPforProcessing = new ArrayList<InterPoints>();
 	static ArrayList<Cluster> arrClusters = new ArrayList<Cluster>();
-	
-	private static final String fileNameOutput = "/Users/prashantsharma/Documents/CLUSTERINGPROJECT/Programs/data/agglomerativeOutput.txt";
-	//private static final String fileNameOutputCent = "/Users/prashantsharma/Documents/CLUSTERINGPROJECT/Programs/data/agglomerativeOutputCent.txt";
-	private static final String fileName = "/Users/prashantsharma/Documents/CLUSTERINGPROJECT/Programs/data/input.txt";
+	private static final String fileName = "/Users/prashantsharma/Documents/CLUSTERINGPROJECT/Programs/data/small.txt";
+	private static final String fileNameOutput = "/Users/prashantsharma/Documents/CLUSTERINGPROJECT/Programs/data/divisivetest.txt";
+	// Total number of clusters formed
 	static int cntOfClusters = 0 ;
 	
 	public static void main(String []  args)
 	{
 		 long startTime = System.nanoTime();
-		 
 		
-		try 
+		 try 
 		{
 			// Reading input File
 			FileReader fileReader;
-	        String line=null;
+	        String line = null;
 			fileReader = new FileReader(fileName);
-			
-	        BufferedReader br = new BufferedReader(fileReader);
+		    BufferedReader br = new BufferedReader(fileReader);
 	        
-	        while((line = br.readLine()) != null) 
+		    while((line = br.readLine()) != null) 
 	        {
 	        		
 		        	Cluster c = new Cluster(0);
@@ -53,21 +49,16 @@ public class Divisive
 	        }
 	        br.close();
 	        
-	        for(Cluster u:arrClusters)
+	       //First Pass -itr iterations --- Finding dmax for all points
+	        for(int itr=0;itr<4;++itr)
 	        {
-	        		u.getStatus();
-	        }
-	        
-	        
-	        //First Pass -itr iterations --- Finding dmax for all points
-	        for(int itr=0;itr<1;++itr)
-	        {
-	        		System.out.println(itr);
+	        		System.out.println("Iteration number : "+itr);
 		        for(Cluster c : arrClusters)
 				{
 		        		c.setDmax(0.0);
 		        		for(Cluster c2 : arrClusters)
 		        		{
+		        			
 		        			if(c!=c2 && c.getClusName()==c2.getClusName())
 		        			{
 		        				double d = c.getPnt().distance(c2.getPnt());
@@ -79,12 +70,7 @@ public class Divisive
 		        			}
 		        		}
 				 }
-		        System.out.println("Status after distance calculation:");
-		        //To get Status of Clusters
-		        for(Cluster ca : arrClusters)
-		        {
-		        		ca.getStatus();
-		        }
+		        
 		        
 		     // Sorting
 		        Collections.sort(arrClusters, new Comparator<Cluster>() {
@@ -104,9 +90,7 @@ public class Divisive
 		        
 		        
 		        //Finding Farthest points
-		        //Cluster ctoBeSplit = null;
-		       // Cluster ctoBeSplitout = null;
-		        //double dmost =0.0;
+		        
 		        ArrayList<Cluster> arrsplitList = new ArrayList<Cluster>();
 		        ArrayList<Cluster> arrsplitListWith = new ArrayList<Cluster>();
 		        int prevcntOfClusters = cntOfClusters;
@@ -115,28 +99,30 @@ public class Divisive
 		        {
 		        	 for(Cluster c : arrClusters)
 				        {
+		        		 		//if the point is in the same cluster and Dmax
 					        	if(c.getClusName()==l && c.getDmax()!=0.0)
 				        		{
 					        		if(!arrsplitList.contains(c) && !arrsplitListWith.contains(c))
 					        		{
-					        			if (arrsplitList.contains(c.getfarthestCluster()))
+					        			if (arrsplitList.contains(c.getfarthestCluster()) && !arrsplitListWith.contains(c.getfarthestCluster()))
 					        			{
 					        				arrsplitListWith.add(c);
 					        				c.setDmax(0.0);
 					        				c.setfarthestCluster(null);
 					        			}
-					        			else if(arrsplitListWith.contains(c.getfarthestCluster()))
+					        			else if(arrsplitListWith.contains(c.getfarthestCluster()) && !arrsplitList.contains(c.getfarthestCluster()))
 					        			{
 					        				arrsplitList.add(c);
 					        				c.setDmax(0.0);
 					        				c.setfarthestCluster(null);
 					        			}
-					        			else
+					        			else if(!arrsplitList.contains(c.getfarthestCluster()) && !arrsplitListWith.contains(c.getfarthestCluster()))
 					        			{
 					        				arrsplitList.add(c);
 					        				arrsplitListWith.add(c.getfarthestCluster());
 					        				c.setDmax(0.0);
 					        				c.setfarthestCluster(null);
+					        				
 					        			}
 					        		}
 					        		else if(!arrsplitList.contains(c.getfarthestCluster()) && !arrsplitListWith.contains(c.getfarthestCluster()))
@@ -144,10 +130,14 @@ public class Divisive
 					        			if (arrsplitList.contains(c))
 					        			{
 					        				arrsplitListWith.add(c.getfarthestCluster());
+					        				c.setDmax(0.0);
+					        				c.setfarthestCluster(null);
 					        			}
 					        			else if(arrsplitListWith.contains(c))
 					        			{
 					        				arrsplitList.add(c.getfarthestCluster());
+					        				c.setDmax(0.0);
+					        				c.setfarthestCluster(null);
 					        			}
 					        		}
 					        		c.setDmax(0.0);
@@ -161,68 +151,25 @@ public class Divisive
 			        		for(Cluster cu: arrsplitList)
 			        		{
 			        			cu.setClusName(cntOfClusters);
-			        			//cu.setDmax(0.0);
-			        			//cu.setfarthestCluster(null);
+			        			
 			        		}
 			        		arrsplitList.clear();
 			        		arrsplitListWith.clear();
 		        		}
 		        	 
-		        	 
+		        	 /*
 		        	 	System.out.println("after new clusters formed");
 		        	 for(Cluster ca : arrClusters)
 				        {
 				        		ca.getStatus();
 				        }
-		        	 
-		        	 /*
-		        	 
-		        		System.out.println("In Cluster no. "+l);
-		        		do{// till all the dMax are 0
-		        	
-		        			//Find the two point with the max distance apart
-				        for(Cluster c : arrClusters)
-				        {
-					        	if(c.getClusName()==l && c != ctoBeSplitout )
-				        		{
-						        	if(c.getDmax()>dmost)
-					        		{   
-					        			dmost = c.getDmax();
-					        		    ctoBeSplit = c ;
-					        		    ctoBeSplitout = c.getfarthestCluster();
-					        		}
-				        		}
-					        
-				        	  } // Now we have the 2 points with max distance
-				        System.out.println("2 points:  "+ctoBeSplit.getPnt()+ ctoBeSplitout.getPnt()+" "+ dmost);
-				        
-				        //Add the points to be split in array
-				        if(!arrsplitListWith.contains(ctoBeSplit))
-				        {
-				        		arrsplitList.add(ctoBeSplit);
-				        		ctoBeSplit.setDmax(0.0);
-				        		ctoBeSplitout.setDmax(0.0);
-				        }
-				        arrsplitListWith.add(ctoBeSplitout);
-				        System.out.println();
-				        if(dmost!=0.0)
-				        {
-				        dmost=-1.0;// distance is never negative
-				        }
-		        		} while (dmost!= 0.0);
-		        		
-		        		// create a new clustername and add one list to that cluster
-		        		++cntOfClusters;//new cluster
-		        		for(Cluster cu: arrsplitList)
-		        		{
-		        			cu.setClusName(cntOfClusters);
-		        		}
-		        		arrsplitList.clear();
-		        		arrsplitListWith.clear();
-		        		*/
+		        	 */
+		      
 		        }
 		        
 		    }
+	        
+	        System.out.println(cntOfClusters);
 	        //Print to file
 	        BufferedWriter bw = null;
 			FileWriter fw = null;
@@ -237,20 +184,7 @@ public class Divisive
 				
 			}
 			bw.close();
-			/*
-			BufferedWriter bw2 = null;
-			FileWriter fw2 = null;
-			fw2 = new FileWriter(fileNameOutputCent);
-			bw2 = new BufferedWriter(fw2);
-			for(Cluster x : arrClusters)
-			{
-				
-				bw2.write(x.getClusName()+" "+x.getCentroid().getX()+" "+x.getCentroid().getY());
-				bw2.newLine();
-				
-			}
-			bw2.close();
-			*/
+			
 			long endTime = System.nanoTime();
 			System.out.println("Took "+(endTime - startTime) + " ns"); 
 			
