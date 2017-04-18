@@ -8,7 +8,7 @@ import java.awt.geom.* ;
 import java.io.*;
 
 
-public class Cluster {
+public class Cluster implements Comparable<Cluster> {
 	
 	 int clusName ;
 	 
@@ -18,9 +18,24 @@ public class Cluster {
 	 
 	 double dmin = Double.POSITIVE_INFINITY;
 	 
+	 int closestCluster = -1;//As the index will never be -ve.
 	 
-	 
-	
+	 public int getClosestCluster() {
+		return closestCluster;
+	}
+
+	public void setClosestCluster(int closestCluster) {
+		this.closestCluster = closestCluster;
+	}
+
+	public double getDmin() {
+		return dmin;
+	}
+
+	public void setDmin(double dmin) {
+		this.dmin = dmin;
+	}
+
 	public Cluster(int i)
 	 {
 		 clusName = i;
@@ -44,6 +59,7 @@ public class Cluster {
 			 centroid.x = (ttlx/pntsInCluster.size());
 			 centroid.y = (ttly/pntsInCluster.size());
 	}
+	 
 	public int getClusName() {
 		return clusName;
 	}
@@ -56,5 +72,20 @@ public class Cluster {
 	public Point2D.Double getCentroid() {
 		return centroid;
 	}
-	
+	public void getStatus()
+	{
+		System.out.println(clusName +" "+ pntsInCluster +" "+ dmin + " " + closestCluster + " "+ centroid);
+	}
+
+	public int compareTo(Cluster cl2) {
+		
+		final int BEFORE = -1;
+	    final int EQUAL = 0;
+	    final int AFTER = 1;
+
+	    if (this.getDmin() == cl2.getDmin()) return EQUAL;
+	    else if (this.getDmin()  < cl2.getDmin()) return BEFORE;
+	    else if (this.getDmin() > cl2.getDmin()) return AFTER;
+	    else return 0;
+	}
 }

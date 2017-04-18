@@ -4,114 +4,148 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.awt.geom.Point2D;
-
 import java.awt.geom.* ;
 
 public class Agglomerative
 {
 	static long startTime = System.nanoTime();
-	//ArrayList<InterPoints> arrIPforProcessing = new ArrayList<InterPoints>();
 	static ArrayList<Cluster> arrClusters = new ArrayList<Cluster>();
-	
-	private static final String fileNameOutput = "/Users/prashantsharma/Documents/CLUSTERINGPROJECT/Programs/data/agglomerativeOutput.txt";
-	private static final String fileNameOutputCent = "/Users/prashantsharma/Documents/CLUSTERINGPROJECT/Programs/data/agglomerativeOutputCent.txt";
-	private static final String fileName = "/Users/prashantsharma/Documents/CLUSTERINGPROJECT/Programs/data/input.txt";
-
+	private static final String fileNameOutput = "/Users/prashantsharma/Documents/CLUSTERINGPROJECT/Programs/data/agglolarge.txt";
+	private static final String fileNameOutputCent = "/Users/prashantsharma/Documents/CLUSTERINGPROJECT/Programs/data/agglolarge-centroids.txt";
+	private static final String fileName = "/Users/prashantsharma/Documents/CLUSTERINGPROJECT/Programs/data/large.txt";
+    static int cntOfClusters = 0;
+    
 	public static void main(String []  args)
 	{
 		 long startTime = System.nanoTime();
-        
-		
+		 System.out.println("in");
 		try 
 		{
 			// Reading input File
 			FileReader fileReader;
-	        String line=null;
+	        String line = null;
 			fileReader = new FileReader(fileName);
-			
-	        BufferedReader br = new BufferedReader(fileReader);
-	        int i=0;
+			BufferedReader br = new BufferedReader(fileReader);
 	        while((line = br.readLine()) != null) 
 	        {
-	        		//arrClusters.add(new Cluster(i));
-	        	    //Cluster c = arrClusters.get(i);
-		        	Cluster c = new Cluster(i);
+	        		Cluster c = new Cluster(cntOfClusters);
 		        	arrClusters.add(c);
-	        	    
-	            String[] splits = line.toString().split(" ");
-	            
+	        	    String[] splits = line.toString().split(" ");
 	            Point2D.Double p1 = new Point2D.Double(
 	                    Double.parseDouble(splits[0]),
 	                    Double.parseDouble(splits[1])) ;
 	            c.addpnts(p1);
-	           ++i;
+	           ++cntOfClusters;
 	        }
 	        br.close();
 	        
-	        //First Pass -itr iterations
-	        for(int itr=0;itr<999;++itr)
+	        //Finding closest points
+		    for(Cluster c : arrClusters)
+			{
+	        		c.setDmin(Double.POSITIVE_INFINITY);
+	        		for(Cluster c2 : arrClusters)
+	        		{
+	        			if(c.getClusName()!=c2.getClusName())
+	        			{
+	        				double d = c.getCentroid().distance(c2.getCentroid());
+	        				if(d<c.getDmin())
+	        				{
+	        					c.setDmin(d);
+	        					c.setClosestCluster(c2.getClusName());
+	        				}
+	        			}
+		        	 }
+			 }
+		    
+		    // Sorting based on dmin   
+	        Collections.sort(arrClusters, new Comparator<Cluster>() {
+                @Override
+                public int compare(Cluster cl1, Cluster cl2)
+                {
+                		return  cl1.compareTo(cl2);
+                }
+            });
+		    
+		        
+	        //Number of iterations -itr iterations
+	        for(int itr=0;itr<49996;++itr)
 	        {
-	        		//System.out.println(itr);
-		        for(Cluster c : arrClusters)
-				{
-		        		c.setDmin(Double.POSITIVE_INFINITY);
-		        		for(Cluster c2 : arrClusters)
-		        		{
-		        			if(c.getClusName()!=c2.getClusName())
-		        			{
-		        				double d = c.getCentroid().distance(c2.getCentroid());
-		        				if(d<c.getDmin())
-		        				{
-		        					c.setDmin(d);
-		        					c.setClosestCluster(c2.getClusName());
-		        				}
-		        			}
-		        		}
-				}
-		        /*// To get Status of Clusters
-		        for(Cluster ca : arrClusters)
-		        {
-		        		ca.getStatus();
-		        }
-		        */
+		        	System.out.println("Iter :  " + itr);
+		        	if(itr!=0)
+		        	{
+			        	Collections.sort(arrClusters, new Comparator<Cluster>() {
+			                @Override
+			                public int compare(Cluster cl1, Cluster cl2)
+			                {
+			                		return  cl1.compareTo(cl2);
+			                }
+			            });
+		        	}
 		        
-		        
-		        //Finding Closest points
-		        int ctmw=-1;// as index will never be -ve.
+		        int ctmw=-1;
 		        Cluster ctoBeMerged = null;
 		        Cluster ctoBeMergedWith = null;
-		        double dleast = Double.POSITIVE_INFINITY;
-		        
+		        ctoBeMerged = arrClusters.get(0);
+		        ctmw = ctoBeMerged.getClosestCluster();
 		        for(Cluster c : arrClusters)
 		        {
 		        		if(c.getClusName()==ctmw)
 		        		{
-		        			ctoBeMergedWith=c;
+		        			ctoBeMergedWith = c;
+		        			 break;
 		        		}
-		        		if(c.getDmin()<dleast)
-		        		{   dleast = c.getDmin();
-		        		    ctoBeMerged = c ;
-		        			ctmw = c.getClosestCluster();
-		        		}
-		        	}
+		        }
+		        
 		        
 		        //Merging Clusters
 		        for(Point2D.Double p : ctoBeMergedWith.getPntsInCluster() )
 				{
-		        		//System.out.println("Merging point: " + ctoBeMerged.getPntsInCluster() + " with " + p);
 		        		ctoBeMerged.addpnts(p);
 				}
 		        arrClusters.remove(ctoBeMergedWith);
 		        
-		        //System.out.println("new cluster : "+ctoBeMerged.getPntsInCluster());
-		        /*
-		        for(Cluster ya : arrClusters )
-		        {
-		        	System.out.println("new cluster Array : "+ ya.getPntsInCluster());
-		        }*/
+		        
+		        //Finding dmin for the new cluster
+		        ctoBeMerged.setDmin(Double.POSITIVE_INFINITY);
+	        		for(Cluster c4 : arrClusters)
+	        		{
+	        			if(ctoBeMerged.getClusName()!=c4.getClusName())
+	        			{
+	        				double d2 = ctoBeMerged.getCentroid().distance(c4.getCentroid());
+	        				if(d2<ctoBeMerged.getDmin())
+	        				{
+	        					ctoBeMerged.setDmin(d2);
+	        					ctoBeMerged.setClosestCluster(c4.getClusName());
+	        				}
+	        			}
+	        		}
+				
+	        		for(Cluster c5 : arrClusters)
+	        		{
+	        			if(ctoBeMerged.getClusName() == c5.getClosestCluster() || ctoBeMergedWith.getClusName() == c5.getClosestCluster())
+	        			{
+	        				c5.setDmin(Double.POSITIVE_INFINITY);
+	        				for(Cluster c6 : arrClusters)
+		    	        		{
+		    	        			if(c5.getClusName()!=c6.getClusName())
+		    	        			{
+		    	        				double d5 = c5.getCentroid().distance(c6.getCentroid());
+		    	        				if(d5<ctoBeMerged.getDmin())
+		    	        				{
+		    	        					c5.setDmin(d5);
+		    	        					c5.setClosestCluster(c6.getClusName());
+		    	        				}
+		    	        			}
+		    	        		}
+	        			}
+	        		}
+		        
+		       
 	        }
 	        //Print to file
 	        BufferedWriter bw = null;
@@ -123,8 +157,8 @@ public class Agglomerative
 			{
 				for(Point2D.Double y : x.getPntsInCluster())
 				{
-				bw.write(x.getClusName()+" "+y.getX()+" "+y.getY());
-				bw.newLine();
+					bw.write(x.getClusName()+" "+y.getX()+" "+y.getY());
+					bw.newLine();
 				}
 			}
 			bw.close();
@@ -142,13 +176,9 @@ public class Agglomerative
 			bw2.close();
 			long endTime = System.nanoTime();
 			System.out.println("Took "+(endTime - startTime) + " ns"); 
-			
-	        
-	        
 		} 
 		catch (Exception e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.out.println("ERRORRRRRRRRRRRRRRRRRR");
 		}
